@@ -1,0 +1,947 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日語單字學習卡片 - 和風學習機</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Noto Serif JP & Zen Maru Gothic -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'washi': '#FAF8F5',
+                        'washi-card': '#FFFDF9',
+                        'wood-light': '#F2EBE1',
+                        'wood-dark': '#6B533E',
+                        'ai-blue': '#1E293B',
+                        'indigo-jp': '#2C3E50',
+                        'matcha': '#5B7065',
+                        'matcha-light': '#EBF0EC',
+                        'sakura': '#E8B4B8',
+                        'sakura-dark': '#C86D74',
+                        'sumi': '#2B2B2B',
+                        'vermilion': '#C84B31'
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif JP"', 'serif'],
+                        sans: ['"Zen Maru Gothic"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #FAF8F5;
+            background-image: radial-gradient(#E6DFD5 0.8px, transparent 0.8px);
+            background-size: 18px 18px;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            color: #2B2B2B;
+            user-select: none;
+        }
+
+        /* 3D Flip Card Animation Styles */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF8F5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D8CEBE;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #BFAEA0;
+        }
+
+        /* Japanese Traditional Style Shadows & Glass effects */
+        .washi-panel {
+            background: rgba(255, 253, 249, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(216, 206, 190, 0.6);
+        }
+
+        .japanese-font {
+            font-family: 'Noto Serif JP', serif;
+        }
+
+        /* Subtle Pattern Overlay for Theme Cards */
+        .seigaiha-bg {
+            background-color: #FAF8F5;
+            background-image: radial-gradient(circle, rgba(107, 83, 62, 0.05) 1px, transparent 1px);
+            background-size: 12px 12px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-sumi">
+
+    <!-- Header Navigation Bar -->
+    <header class="w-full washi-panel sticky top-0 z-30 shadow-sm px-4 lg:px-8 py-3 transition-all">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            
+            <!-- Brand Logo & Home Return -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="showHub()">
+                <div class="w-10 h-10 rounded-2xl bg-vermilion text-white flex items-center justify-center shadow-md font-bold text-xl font-serif">
+                    和
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wide japanese-font text-indigo-jp flex items-center gap-2">
+                        和風日本語単語帳
+                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-wood-light text-wood-dark font-normal border border-wood-dark/20">純和語 / 無外來語</span>
+                    </h1>
+                    <p class="text-xs text-gray-500">純假名與漢字日語學習網頁</p>
+                </div>
+            </div>
+
+            <!-- Global Search & Controls (Active inside a theme) -->
+            <div id="header-controls" class="hidden flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                <!-- Return Hub Button -->
+                <button onclick="showHub()" class="px-3 py-1.5 rounded-xl bg-wood-light hover:bg-wood-dark hover:text-white text-wood-dark text-xs font-bold transition flex items-center gap-1.5 border border-wood-dark/10">
+                    <i class="fa-solid fa-house"></i> 回主題選單
+                </button>
+
+                <!-- Search Input -->
+                <div class="relative flex-1 sm:w-48">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="search-input" oninput="handleSearch()" placeholder="搜尋單字..." 
+                           class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-matcha/40 transition">
+                </div>
+
+                <!-- Sound Switch -->
+                <button id="sound-toggle" onclick="toggleSound()" title="聲音切換" class="w-8 h-8 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-indigo-jp flex items-center justify-center transition shadow-sm">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+
+                <!-- Mode Switch Tabs -->
+                <div class="flex items-center gap-1 bg-wood-light p-1 rounded-xl border border-wood-dark/10 text-xs">
+                    <button id="mode-single" onclick="switchMode('single')" class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1 bg-white text-indigo-jp shadow-sm">
+                        <i class="fa-solid fa-clone"></i> 單卡
+                    </button>
+                    <button id="mode-grid" onclick="switchMode('grid')" class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1 text-gray-600 hover:text-indigo-jp">
+                        <i class="fa-solid fa-border-all"></i> 一覽
+                    </button>
+                    <button id="mode-quiz" onclick="switchMode('quiz')" class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1 text-gray-600 hover:text-indigo-jp">
+                        <i class="fa-solid fa-graduation-cap"></i> 測驗
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center">
+
+        <!-- ==================== 1. LANDING HUB (5 THEMES SELECTOR) ==================== -->
+        <section id="theme-hub" class="w-full max-w-5xl py-4 flex flex-col items-center animate-fadeIn">
+            <!-- Hub Banner -->
+            <div class="text-center mb-8">
+                <span class="px-3.5 py-1 rounded-full bg-matcha-light text-matcha text-xs font-bold tracking-widest uppercase border border-matcha/20 mb-2 inline-block">
+                    五大主題語彙
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-black text-indigo-jp japanese-font mb-2">請選擇主題開始學習</h2>
+                <p class="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
+                    本套卡片全數採用傳統和語與漢字（零片假名/無外來語），搭配發音與測驗，幫助您掌握最扎實的日語基本功。
+                </p>
+            </div>
+
+            <!-- 5 Theme Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                
+                <!-- Theme 1: 星期 (七曜) -->
+                <div onclick="selectTheme('week')" class="group cursor-pointer rounded-3xl p-6 bg-washi-card border border-wood-dark/15 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-12 h-12 rounded-2xl bg-sakura/30 text-sakura-dark flex items-center justify-center text-2xl font-bold">
+                            📅
+                        </span>
+                        <span class="text-xs font-bold text-gray-400 bg-wood-light px-2.5 py-1 rounded-full">7 個單字</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-jp japanese-font mb-1 group-hover:text-vermilion transition">
+                            日本星期 (七曜)
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-4">月曜日、火曜日...完整星期概念與日文發音</p>
+                    </div>
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-matcha">
+                        <span>開始學習</span>
+                        <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-sakura/10 rounded-full blur-xl"></div>
+                </div>
+
+                <!-- Theme 2: 蔬菜水果 -->
+                <div onclick="selectTheme('vege')" class="group cursor-pointer rounded-3xl p-6 bg-washi-card border border-wood-dark/15 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-12 h-12 rounded-2xl bg-matcha/20 text-matcha flex items-center justify-center text-2xl font-bold">
+                            🥦
+                        </span>
+                        <span class="text-xs font-bold text-gray-400 bg-wood-light px-2.5 py-1 rounded-full">11 個單字</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-jp japanese-font mb-1 group-hover:text-vermilion transition">
+                            蔬菜水果 (野菜と果物)
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-4">人参、大根、苺、葡萄等生鮮蔬果傳統名稱</p>
+                    </div>
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-matcha">
+                        <span>開始學習</span>
+                        <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-matcha/10 rounded-full blur-xl"></div>
+                </div>
+
+                <!-- Theme 3: 日常生活用品/家俱 -->
+                <div onclick="selectTheme('household')" class="group cursor-pointer rounded-3xl p-6 bg-washi-card border border-wood-dark/15 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl font-bold">
+                            🥢
+                        </span>
+                        <span class="text-xs font-bold text-gray-400 bg-wood-light px-2.5 py-1 rounded-full">11 個單字</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-jp japanese-font mb-1 group-hover:text-vermilion transition">
+                            生活用品與家俱 (日用品)
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-4">箸、傘、鏡、時計、鍵、財布等家常物品</p>
+                    </div>
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-matcha">
+                        <span>開始學習</span>
+                        <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-200/20 rounded-full blur-xl"></div>
+                </div>
+
+                <!-- Theme 4: 自然與天氣 -->
+                <div onclick="selectTheme('nature')" class="group cursor-pointer rounded-3xl p-6 bg-washi-card border border-wood-dark/15 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center text-2xl font-bold">
+                            🌸
+                        </span>
+                        <span class="text-xs font-bold text-gray-400 bg-wood-light px-2.5 py-1 rounded-full">12 個單字</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-jp japanese-font mb-1 group-hover:text-vermilion transition">
+                            自然與天氣 (自然と天気)
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-4">雨、雪、風、空、海、山、花、太陽自然景觀</p>
+                    </div>
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-matcha">
+                        <span>開始學習</span>
+                        <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-sky-200/20 rounded-full blur-xl"></div>
+                </div>
+
+                <!-- Theme 5: 身體部位與情緒 -->
+                <div onclick="selectTheme('body')" class="group cursor-pointer rounded-3xl p-6 bg-washi-card border border-wood-dark/15 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl font-bold">
+                            👁️
+                        </span>
+                        <span class="text-xs font-bold text-gray-400 bg-wood-light px-2.5 py-1 rounded-full">11 個單字</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-jp japanese-font mb-1 group-hover:text-vermilion transition">
+                            身體部位與心境 (身体と心)
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-4">目、耳、口、手、足、心、頭、顔、声身體部位</p>
+                    </div>
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-matcha">
+                        <span>開始學習</span>
+                        <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-rose-200/20 rounded-full blur-xl"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== 2. SINGLE CARD VIEW ==================== -->
+        <section id="view-single" class="w-full max-w-md hidden flex-col items-center gap-5 my-auto py-2">
+            
+            <!-- Progress Bar & Theme Title -->
+            <div class="w-full flex justify-between items-center px-1">
+                <span id="single-theme-title" class="text-xs font-bold text-wood-dark bg-wood-light px-3 py-1 rounded-full border border-wood-dark/10">
+                    主題名稱
+                </span>
+                <span id="single-progress-text" class="text-xs font-bold text-indigo-jp bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">1 / 10</span>
+            </div>
+
+            <!-- Flip Card Wrapper -->
+            <div class="w-full h-96 sm:h-[410px] perspective-1000 cursor-pointer group" onclick="flipCard('single-card')">
+                <div id="single-card" class="w-full h-full relative transform-style-3d transition-transform duration-500 rounded-3xl shadow-lg border-2 border-white/80">
+                    
+                    <!-- Card Front -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-washi-card shadow-inner overflow-hidden border border-wood-dark/10">
+                        <!-- Top Bar inside Card -->
+                        <div class="w-full flex justify-between items-center z-10">
+                            <span id="front-category-tag" class="px-3 py-1 rounded-full text-xs font-bold bg-matcha-light text-matcha">
+                                單字卡片
+                            </span>
+                            <button onclick="event.stopPropagation(); playCurrentTTS();" title="播放語音" class="w-10 h-10 rounded-full bg-white hover:bg-sakura/30 text-indigo-jp flex items-center justify-center transition border border-gray-200 shadow-sm">
+                                <i class="fa-solid fa-volume-high text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Center Main Kanji & Emoji -->
+                        <div class="my-auto z-10 flex flex-col items-center">
+                            <span id="front-emoji" class="text-6xl sm:text-7xl mb-3 transition-transform group-hover:scale-105">🌸</span>
+                            <span id="front-kanji" class="text-4xl sm:text-5xl font-black japanese-font tracking-tight mb-2 text-indigo-jp">月曜日</span>
+                            <span id="front-romaji" class="text-sm font-bold text-matcha tracking-widest uppercase">Getsuyoubi</span>
+                        </div>
+
+                        <!-- Bottom Hint -->
+                        <div class="w-full text-xs text-gray-400 flex justify-center items-center gap-1 z-10">
+                            <i class="fa-solid fa-rotate text-sakura-dark"></i> 點擊翻面查看假名、意思與例句
+                        </div>
+
+                        <!-- Decorative Accent Line -->
+                        <div class="absolute top-0 left-0 w-full h-2 rounded-t-3xl bg-indigo-jp opacity-90"></div>
+                    </div>
+
+                    <!-- Card Back -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-gradient-to-br from-washi-card via-washi to-wood-light/30 shadow-inner border border-wood-dark/20 overflow-hidden">
+                        
+                        <!-- Top Bar inside Card -->
+                        <div class="w-full flex justify-between items-center z-10">
+                            <span id="back-kana" class="px-3 py-1 rounded-full text-xs font-bold bg-sakura/30 text-sakura-dark japanese-font">げつようび</span>
+                            <button onclick="event.stopPropagation(); playCurrentTTS();" title="單字發音" class="w-9 h-9 rounded-full bg-white hover:bg-sakura/30 text-indigo-jp flex items-center justify-center transition border border-gray-200 shadow-sm">
+                                <i class="fa-solid fa-volume-high text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Center Chinese Meaning -->
+                        <div class="my-auto z-10 flex flex-col items-center gap-3 w-full">
+                            <div id="back-zh" class="text-3xl font-extrabold text-indigo-jp">
+                                星期一
+                            </div>
+                            
+                            <!-- Example Sentence Box -->
+                            <div class="w-full p-3.5 rounded-2xl bg-white/90 border border-gray-200/80 shadow-sm text-left relative">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[11px] font-bold text-vermilion flex items-center gap-1">
+                                        <i class="fa-solid fa-bookmark"></i> 實用例句
+                                    </span>
+                                    <button onclick="event.stopPropagation(); playSentenceTTS();" title="朗讀例句" class="text-[11px] text-indigo-jp hover:text-vermilion px-2 py-0.5 rounded-md bg-gray-100 transition">
+                                        <i class="fa-solid fa-volume-high"></i> 聽例句
+                                    </button>
+                                </div>
+                                <div id="back-sentence-ja" class="text-sm font-bold text-indigo-jp japanese-font mb-0.5">月曜日に学校へ行きます。</div>
+                                <div id="back-sentence-zh" class="text-xs text-gray-500">星期一去學校。</div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Hint -->
+                        <div class="w-full text-xs text-gray-400 flex justify-center items-center gap-1 z-10">
+                            <i class="fa-solid fa-rotate text-sakura-dark"></i> 點擊卡片翻回正面
+                        </div>
+
+                        <div class="absolute top-0 left-0 w-full h-2 rounded-t-3xl bg-matcha opacity-90"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="w-full flex items-center justify-between gap-3 pt-1">
+                <button onclick="prevCard()" class="flex-1 py-3 px-4 rounded-2xl bg-white border border-gray-200 text-indigo-jp font-bold shadow-sm hover:bg-gray-50 active:scale-95 transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-arrow-left"></i> 上一張
+                </button>
+                <button onclick="flipCard('single-card')" class="w-12 h-12 rounded-2xl bg-sakura/30 border border-sakura-dark/30 text-sakura-dark font-bold shadow-sm hover:bg-sakura/50 active:scale-95 transition flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-rotate text-lg"></i>
+                </button>
+                <button onclick="nextCard()" class="flex-1 py-3 px-4 rounded-2xl bg-indigo-jp text-white font-bold shadow-md hover:bg-opacity-90 active:scale-95 transition flex items-center justify-center gap-2 text-sm">
+                    下一張 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <p class="text-[11px] text-gray-400 text-center flex items-center gap-3">
+                <span><kbd class="px-1.5 py-0.5 text-[10px] bg-white border border-gray-300 rounded">←</kbd> <kbd class="px-1.5 py-0.5 text-[10px] bg-white border border-gray-300 rounded">→</kbd> 切換</span>
+                <span><kbd class="px-2 py-0.5 text-[10px] bg-white border border-gray-300 rounded">Space</kbd> 翻卡</span>
+            </p>
+
+        </section>
+
+        <!-- ==================== 3. GRID OVERVIEW ==================== -->
+        <section id="view-grid" class="w-full hidden py-2 animate-fadeIn">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="grid-theme-title" class="text-lg font-bold text-indigo-jp japanese-font flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-vermilion"></i> 主題單字總覽
+                </h2>
+                <span id="grid-count-badge" class="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">共 0 項</span>
+            </div>
+
+            <div id="grid-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Grid Cards populated via JS -->
+            </div>
+        </section>
+
+        <!-- ==================== 4. TEST / QUIZ MODE ==================== -->
+        <section id="view-quiz" class="w-full max-w-md hidden flex-col items-center gap-5 py-2">
+            
+            <!-- Quiz Dashboard Stats -->
+            <div class="w-full washi-panel rounded-2xl p-4 flex items-center justify-between shadow-sm border border-wood-dark/10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-matcha/20 text-matcha flex items-center justify-center font-bold text-xs">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-gray-400">已精通</div>
+                        <div id="quiz-stat-mastered" class="text-sm font-bold text-matcha">0 / 0</div>
+                    </div>
+                </div>
+                
+                <div class="h-8 w-px bg-gray-200"></div>
+
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-sakura/40 text-sakura-dark flex items-center justify-center font-bold text-xs">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-gray-400">待複習</div>
+                        <div id="quiz-stat-review" class="text-sm font-bold text-sakura-dark">0 / 0</div>
+                    </div>
+                </div>
+
+                <button onclick="resetQuiz()" title="重新測驗" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 transition flex items-center gap-1 font-bold">
+                    <i class="fa-solid fa-arrows-rotate"></i> 重置
+                </button>
+            </div>
+
+            <!-- Quiz Flip Card Wrapper -->
+            <div class="w-full h-80 sm:h-96 perspective-1000 cursor-pointer" onclick="flipCard('quiz-card')">
+                <div id="quiz-card" class="w-full h-full relative transform-style-3d transition-transform duration-500 rounded-3xl shadow-lg border-2 border-white">
+                    
+                    <!-- Quiz Card Front -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-washi-card shadow-inner overflow-hidden">
+                        <div class="w-full flex justify-between items-center">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-wood-light text-wood-dark">記憶測驗</span>
+                            <button onclick="event.stopPropagation(); playQuizTTS();" class="w-9 h-9 rounded-full bg-white hover:bg-sakura/30 text-indigo-jp flex items-center justify-center transition border border-gray-200 shadow-sm">
+                                <i class="fa-solid fa-volume-high text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="my-auto flex flex-col items-center">
+                            <span id="quiz-front-emoji" class="text-6xl mb-2">🍎</span>
+                            <span id="quiz-front-kanji" class="text-4xl sm:text-5xl font-black japanese-font text-indigo-jp mb-1">人参</span>
+                            <span id="quiz-front-romaji" class="text-xs font-bold text-gray-400 tracking-widest uppercase">Ninjin</span>
+                        </div>
+
+                        <div class="w-full text-xs text-sakura-dark flex justify-center items-center gap-1">
+                            <i class="fa-solid fa-hand-pointer"></i> 點擊翻面確認意思
+                        </div>
+                        <div class="absolute top-0 left-0 w-full h-2 rounded-t-3xl bg-indigo-jp opacity-90"></div>
+                    </div>
+
+                    <!-- Quiz Card Back -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-gradient-to-br from-washi-card to-wood-light/40 shadow-inner border border-wood-dark/20 overflow-hidden">
+                        <div class="w-full flex justify-between items-center">
+                            <span id="quiz-back-kana" class="px-3 py-1 rounded-full text-xs font-bold bg-sakura/30 text-sakura-dark japanese-font">にんじん</span>
+                            <button onclick="event.stopPropagation(); playQuizTTS();" class="w-9 h-9 rounded-full bg-white hover:bg-sakura/30 text-indigo-jp flex items-center justify-center transition border border-gray-200 shadow-sm">
+                                <i class="fa-solid fa-volume-high text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="my-auto flex flex-col items-center gap-2 w-full">
+                            <div id="quiz-back-zh" class="text-3xl font-extrabold text-indigo-jp">
+                                胡蘿蔔
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/90 border border-gray-200 text-left w-full mt-1">
+                                <div class="text-[10px] font-bold text-vermilion mb-0.5">例句</div>
+                                <div id="quiz-back-sentence" class="text-xs text-indigo-jp japanese-font font-bold">人参を食べます。</div>
+                                <div id="quiz-back-sentence-zh" class="text-[11px] text-gray-500">吃胡蘿蔔。</div>
+                            </div>
+                        </div>
+
+                        <div class="w-full text-xs text-gray-400">請評估您的熟練度 👇</div>
+                        <div class="absolute top-0 left-0 w-full h-2 rounded-t-3xl bg-matcha opacity-90"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Quiz Action Buttons -->
+            <div class="w-full flex items-center justify-between gap-3 pt-1">
+                <button onclick="markQuiz(false)" class="flex-1 py-3 px-4 rounded-2xl bg-white border-2 border-sakura-dark/40 text-sakura-dark font-bold hover:bg-sakura/20 active:scale-95 transition flex items-center justify-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-xmark"></i> 還不熟
+                </button>
+                <button onclick="markQuiz(true)" class="flex-1 py-3 px-4 rounded-2xl bg-matcha text-white font-bold hover:bg-opacity-90 active:scale-95 transition flex items-center justify-center gap-2 shadow-md text-sm">
+                    <i class="fa-solid fa-check"></i> 記住了！
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-gray-400 border-t border-gray-200/60 washi-panel mt-auto">
+        <p>和風日語單字卡 · 純假名與漢字學習網頁</p>
+    </footer>
+
+    <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+    <script>
+        // STRICT REQUIREMENT: ALL 5 THEMES STRICTLY CONTAIN HIRAGANA / KANJI ONLY. NO KATAKANA LOANWORDS.
+        const themesData = {
+            week: {
+                title: "日本星期 (七曜)",
+                items: [
+                    { id: "w1", kanji: "月曜日", kana: "げつようび", romaji: "Getsuyoubi", zh: "星期一", emoji: "🌙", sentenceJa: "月曜日に学校へ行きます。", sentenceZh: "星期一去學校。" },
+                    { id: "w2", kanji: "火曜日", kana: "かようび", romaji: "Kayoubi", zh: "星期二", emoji: "🔥", sentenceJa: "火曜日はそうじの日です。", sentenceZh: "星期二是打掃日。" },
+                    { id: "w3", kanji: "水曜日", kana: "すいようび", romaji: "Suiyoubi", zh: "星期三", emoji: "💧", sentenceJa: "水曜日に買い物をします。", sentenceZh: "星期三買東西。" },
+                    { id: "w4", kanji: "木曜日", kana: "もくようび", romaji: "Mokuyoubi", zh: "星期四", emoji: "🌳", sentenceJa: "木曜日は図書館へ行きます。", sentenceZh: "星期四去圖書館。" },
+                    { id: "w5", kanji: "金曜日", kana: "きんようび", romaji: "Kinyoubi", zh: "星期五", emoji: "💰", sentenceJa: "金曜日の夜はうれしいです。", sentenceZh: "星期五晚上很高興。" },
+                    { id: "w6", kanji: "土曜日", kana: "どようび", romaji: "Doyoubi", zh: "星期六", emoji: "🏜️", sentenceJa: "土曜日に友達と会います。", sentenceZh: "星期六跟朋友見面。" },
+                    { id: "w7", kanji: "日曜日", kana: "にちようび", romaji: "Nichiyoubi", zh: "星期日", emoji: "☀️", sentenceJa: "日曜日はやすみです。", sentenceZh: "星期日休息。" }
+                ]
+            },
+            vege: {
+                title: "蔬菜水果 (野菜と果物)",
+                items: [
+                    { id: "v1", kanji: "人参", kana: "にんじん", romaji: "Ninjin", zh: "胡蘿蔔", emoji: "🥕", sentenceJa: "人参を甘く煮ます。", sentenceZh: "把胡蘿蔔煮甜。" },
+                    { id: "v2", kanji: "大根", kana: "だいこん", romaji: "Daikon", zh: "白蘿蔔", emoji: "🥗", sentenceJa: "大根のおみそ汁を作ります。", sentenceZh: "做白蘿蔔味噌湯。" },
+                    { id: "v3", kanji: "胡瓜", kana: "きゅうり", romaji: "Kyuuri", zh: "小黃瓜", emoji: "🥒", sentenceJa: "新鮮な胡瓜を食べます。", sentenceZh: "吃新鮮的小黃瓜。" },
+                    { id: "v4", kanji: "茄子", kana: "なす", romaji: "Nasu", zh: "茄子", emoji: "🍆", sentenceJa: "茄子を焼いて食べます。", sentenceZh: "烤茄子吃。" },
+                    { id: "v5", kanji: "葱", kana: "ねぎ", romaji: "Negi", zh: "蔥", emoji: "🌱", sentenceJa: "ねぎを細かく切ります。", sentenceZh: "把蔥切細。" },
+                    { id: "v6", kanji: "桃", kana: "もも", romaji: "Momo", zh: "桃子", emoji: "🍑", sentenceJa: "甘い桃を食べました。", sentenceZh: "吃了甜桃子。" },
+                    { id: "v7", kanji: "柿", kana: "かき", romaji: "Kaki", zh: "柿子", emoji: "🍊", sentenceJa: "秋に柿が実ります。", sentenceZh: "秋天柿子結實。" },
+                    { id: "v8", kanji: "苺", kana: "いちご", romaji: "Ichigo", zh: "草莓", emoji: "🍓", sentenceJa: "赤い苺がとても甘いです。", sentenceZh: "紅草莓非常甜。" },
+                    { id: "v9", kanji: "葡萄", kana: "ぶどう", romaji: "Budou", zh: "葡萄", emoji: "🍇", sentenceJa: "山梨の葡萄はおいしいです。", sentenceZh: "山梨的葡萄很好吃。" },
+                    { id: "v10", kanji: "蜜柑", kana: "みかん", romaji: "Mikan", zh: "蜜柑 / 橘子", emoji: "🍊", sentenceJa: "冬に蜜柑を食べます。", sentenceZh: "冬天吃蜜柑。" },
+                    { id: "v11", kanji: "梨", kana: "なし", romaji: "Nashi", zh: "水梨", emoji: "🍐", sentenceJa: "みずみずしい梨です。", sentenceZh: "多汁的水梨。" }
+                ]
+            },
+            household: {
+                title: "生活用品與家俱",
+                items: [
+                    { id: "h1", kanji: "箸", kana: "はし", romaji: "Hashi", zh: "筷子", emoji: "🥢", sentenceJa: "箸でご飯を食べます。", sentenceZh: "用筷子吃飯。" },
+                    { id: "h2", kanji: "傘", kana: "かさ", romaji: "Kasa", zh: "雨傘", emoji: "☂️", sentenceJa: "雨が降るので傘を持ちます。", sentenceZh: "下雨所以帶傘。" },
+                    { id: "h3", kanji: "鏡", kana: "かがみ", romaji: "Kagami", zh: "鏡子", emoji: "🪞", sentenceJa: "鏡を見てかおを洗います。", sentenceZh: "照鏡子洗臉。" },
+                    { id: "h4", kanji: "時計", kana: "とけい", romaji: "Tokei", zh: "時鐘 / 手錶", emoji: "🕰️", sentenceJa: "部屋に時計があります。", sentenceZh: "房間裡有時鐘。" },
+                    { id: "h5", kanji: "鍵", kana: "かぎ", romaji: "Kagi", zh: "鑰匙", emoji: "🔑", sentenceJa: "車の鍵をポケットに入れます。", sentenceZh: "把車鑰匙放進口袋。" },
+                    { id: "h6", kanji: "本", kana: "ほん", romaji: "Hon", zh: "書本", emoji: "📚", sentenceJa: "毎日、本を読みます。", sentenceZh: "每天讀書。" },
+                    { id: "h7", kanji: "靴", kana: "くつ", romaji: "Kutsu", zh: "鞋子", emoji: "👞", sentenceJa: "新しい靴をはきます。", sentenceZh: "穿新鞋。" },
+                    { id: "h8", kanji: "鞄", kana: "かばん", romaji: "Kaban", zh: "包包", emoji: "👜", sentenceJa: "鞄に本を入れます。", sentenceZh: "把書放進包包。" },
+                    { id: "h9", kanji: "皿", kana: "さら", romaji: "Sara", zh: "盤子", emoji: "🍽️", sentenceJa: "皿をきれいに洗います。", sentenceZh: "把盤子洗乾淨。" },
+                    { id: "h10", kanji: "鋏", kana: "はさみ", romaji: "Hasami", zh: "剪刀", emoji: "✂️", sentenceJa: "鋏で紙を切ります。", sentenceZh: "用剪刀剪紙。" },
+                    { id: "h11", kanji: "財布", kana: "さいふ", romaji: "Saifu", zh: "皮夾 / 錢包", emoji: "👛", sentenceJa: "財布を大切にします。", sentenceZh: "珍惜錢包。" }
+                ]
+            },
+            nature: {
+                title: "自然與天氣",
+                items: [
+                    { id: "n1", kanji: "雨", kana: "あめ", romaji: "Ame", zh: "雨", emoji: "🌧️", sentenceJa: "静かに雨が降っています。", sentenceZh: "靜靜地下著雨。" },
+                    { id: "n2", kanji: "雪", kana: "ゆき", romaji: "Yuki", zh: "雪", emoji: "❄️", sentenceJa: "山に白い雪がふります。", sentenceZh: "山上下著白雪。" },
+                    { id: "n3", kanji: "風", kana: "かぜ", romaji: "Kaze", zh: "風", emoji: "🍃", sentenceJa: "心地よい風がふきます。", sentenceZh: "吹著舒適的風。" },
+                    { id: "n4", kanji: "空", kana: "そら", romaji: "Sora", zh: "天空", emoji: "🌤️", sentenceJa: "青い空が広がりあがります。", sentenceZh: "蔚藍的天空延伸。" },
+                    { id: "n5", kanji: "海", kana: "うみ", romaji: "Umi", zh: "大海", emoji: "🌊", sentenceJa: "夏に海へ行きます。", sentenceZh: "夏天去海邊。" },
+                    { id: "n6", kanji: "山", kana: "やま", romaji: "Yama", zh: "山", emoji: "⛰️", sentenceJa: "高い山へ登ります。", sentenceZh: "攀登高山。" },
+                    { id: "n7", kanji: "川", kana: "かわ", romaji: "Kawa", zh: "河流", emoji: "🏞️", sentenceJa: "きれいな川が流れています。", sentenceZh: "流著美麗的河流。" },
+                    { id: "n8", kanji: "花", kana: "はな", romaji: "Hana", zh: "花朵", emoji: "🌸", sentenceJa: "庭にきれいな花が咲きます。", sentenceZh: "院子裡開著美麗的花。" },
+                    { id: "n9", kanji: "月", kana: "つき", romaji: "Tsuki", zh: "月亮", emoji: "🌕", sentenceJa: "今夜は月がきれいです。", sentenceZh: "今晚月色很美。" },
+                    { id: "n10", kanji: "太陽", kana: "たいよう", romaji: "Taiyou", zh: "太陽", emoji: "☀️", sentenceJa: "太陽がのぼります。", sentenceZh: "太陽升起。" },
+                    { id: "n11", kanji: "雲", kana: "くも", romaji: "Kumo", zh: "雲朵", emoji: "☁️", sentenceJa: "白い雲が浮かんでいます。", sentenceZh: "飄浮著白雲。" },
+                    { id: "n12", kanji: "星", kana: "ほし", romaji: "Hoshi", zh: "星星", emoji: "⭐", sentenceJa: "夜空に星が光ります。", sentenceZh: "夜空中繁星閃爍。" }
+                ]
+            },
+            body: {
+                title: "身體部位與心境",
+                items: [
+                    { id: "b1", kanji: "目", kana: "め", romaji: "Me", zh: "眼睛", emoji: "👁️", sentenceJa: "目を閉じて休んでいます。", sentenceZh: "閉上眼睛休息。" },
+                    { id: "b2", kanji: "耳", kana: "みみ", romaji: "Mimi", zh: "耳朵", emoji: "👂", sentenceJa: "耳をすませて聞きます。", sentenceZh: "洗耳恭聽。" },
+                    { id: "b3", kanji: "口", kana: "くち", romaji: "Kuchi", zh: "嘴巴", emoji: "👄", sentenceJa: "大きな口をあけます。", sentenceZh: "張大嘴巴。" },
+                    { id: "b4", kanji: "手", kana: "て", romaji: "Te", zh: "手", emoji: "✋", sentenceJa: "きれいに手を洗います。", sentenceZh: "把手洗乾淨。" },
+                    { id: "b5", kanji: "足", kana: "あし", romaji: "Ashi", zh: "腳 / 腿", emoji: "🦶", sentenceJa: "たくさん歩いて足が痛いです。", sentenceZh: "走了很多路腳痛。" },
+                    { id: "b6", kanji: "心", kana: "こころ", romaji: "Kokoro", zh: "心靈 / 心意", emoji: "❤️", sentenceJa: "優しい心を持ちます。", sentenceZh: "懷著溫柔的心。" },
+                    { id: "b7", kanji: "頭", kana: "あたま", romaji: "Atama", zh: "頭部 / 頭腦", emoji: "🧠", sentenceJa: "頭を働かせて考えます。", sentenceZh: "動腦思考。" },
+                    { id: "b8", kanji: "顔", kana: "かお", romaji: "Kao", zh: "臉龐", emoji: "😊", sentenceJa: "笑顔のかおがすてきです。", sentenceZh: "微笑的臉龐真棒。" },
+                    { id: "b9", kanji: "声", kana: "こえ", romaji: "Koe", zh: "聲音", emoji: "🗣️", sentenceJa: "美しい声をききます。", sentenceZh: "聽到美麗的聲音。" },
+                    { id: "b10", kanji: "体", kana: "からだ", romaji: "Karada", zh: "身體", emoji: "🧍", sentenceJa: "体を大切にします。", sentenceZh: "珍惜身體健康。" },
+                    { id: "b11", kanji: "腹", kana: "なか", romaji: "Naka / Onaka", zh: "肚子", emoji: "🤰", sentenceJa: "お腹がすきました。", sentenceZh: "肚子餓了。" }
+                ]
+            }
+        };
+
+        // App State
+        let currentThemeKey = 'week';
+        let currentItems = [...themesData.week.items];
+        let filteredItems = [...currentItems];
+        let currentIndex = 0;
+        let soundEnabled = true;
+        let currentMode = 'single'; // single, grid, quiz
+        let quizDeck = [];
+        let quizIndex = 0;
+        let quizMastered = new Set();
+        let quizNeedsReview = new Set();
+
+        // Audio Effects Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playFlipSound() {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } catch (e) {}
+        }
+
+        function playSuccessSound() {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.09);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.22);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.22);
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-xs';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+            }
+        }
+
+        // Web Speech API
+        function speakJapanese(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function playCurrentTTS() {
+            if (filteredItems.length > 0) {
+                speakJapanese(filteredItems[currentIndex].kanji);
+            }
+        }
+
+        function playSentenceTTS() {
+            if (filteredItems.length > 0) {
+                speakJapanese(filteredItems[currentIndex].sentenceJa);
+            }
+        }
+
+        function playQuizTTS() {
+            if (quizDeck.length > 0) {
+                speakJapanese(quizDeck[quizIndex].kanji);
+            }
+        }
+
+        // Flip Card Functions
+        function flipCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (card) {
+                card.classList.toggle('rotate-y-180');
+                playFlipSound();
+            }
+        }
+
+        function unflipCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (card && card.classList.contains('rotate-y-180')) {
+                card.classList.remove('rotate-y-180');
+            }
+        }
+
+        // Hub Navigation & Theme Selection
+        function showHub() {
+            document.getElementById('theme-hub').classList.remove('hidden');
+            document.getElementById('view-single').classList.add('hidden');
+            document.getElementById('view-single').classList.remove('flex');
+            document.getElementById('view-grid').classList.add('hidden');
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-quiz').classList.remove('flex');
+            document.getElementById('header-controls').classList.add('hidden');
+            document.getElementById('header-controls').classList.remove('flex');
+        }
+
+        function selectTheme(themeKey) {
+            currentThemeKey = themeKey;
+            currentItems = [...themesData[themeKey].items];
+            filteredItems = [...currentItems];
+            currentIndex = 0;
+
+            document.getElementById('theme-hub').classList.add('hidden');
+            document.getElementById('header-controls').classList.remove('hidden');
+            document.getElementById('header-controls').classList.add('flex');
+
+            document.getElementById('search-input').value = '';
+
+            switchMode('single');
+        }
+
+        // Render Single Card View
+        function renderSingleCard() {
+            unflipCard('single-card');
+            
+            const themeTitle = themesData[currentThemeKey].title;
+            document.getElementById('single-theme-title').innerText = themeTitle;
+
+            if (filteredItems.length === 0) {
+                document.getElementById('front-kanji').innerText = "無項目";
+                document.getElementById('front-romaji').innerText = "請嘗試重新搜尋";
+                document.getElementById('front-emoji').innerText = "🔍";
+                document.getElementById('back-kana').innerText = "-";
+                document.getElementById('back-zh').innerText = "找不到相關單字";
+                document.getElementById('back-sentence-ja').innerText = "-";
+                document.getElementById('back-sentence-zh').innerText = "-";
+                document.getElementById('single-progress-text').innerText = `0 / 0`;
+                return;
+            }
+
+            if (currentIndex >= filteredItems.length) currentIndex = 0;
+
+            const item = filteredItems[currentIndex];
+
+            document.getElementById('front-category-tag').innerText = themeTitle;
+            document.getElementById('front-emoji').innerText = item.emoji;
+            document.getElementById('front-kanji').innerText = item.kanji;
+            document.getElementById('front-romaji').innerText = item.romaji;
+
+            document.getElementById('back-kana').innerText = item.kana;
+            document.getElementById('back-zh').innerText = item.zh;
+            document.getElementById('back-sentence-ja').innerText = item.sentenceJa;
+            document.getElementById('back-sentence-zh').innerText = item.sentenceZh;
+
+            document.getElementById('single-progress-text').innerText = `${currentIndex + 1} / ${filteredItems.length}`;
+        }
+
+        function nextCard() {
+            if (filteredItems.length === 0) return;
+            currentIndex = (currentIndex + 1) % filteredItems.length;
+            renderSingleCard();
+        }
+
+        function prevCard() {
+            if (filteredItems.length === 0) return;
+            currentIndex = (currentIndex - 1 + filteredItems.length) % filteredItems.length;
+            renderSingleCard();
+        }
+
+        // Render Grid View
+        function renderGridView() {
+            const container = document.getElementById('grid-container');
+            const badge = document.getElementById('grid-count-badge');
+            const title = document.getElementById('grid-theme-title');
+
+            title.innerText = `${themesData[currentThemeKey].title} 一覽`;
+            badge.innerText = `共 ${filteredItems.length} 項`;
+            container.innerHTML = '';
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">沒有符合搜尋的單字</div>`;
+                return;
+            }
+
+            filteredItems.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'h-64 perspective-1000 cursor-pointer';
+                card.onclick = () => flipCard(`grid-card-${idx}`);
+
+                card.innerHTML = `
+                    <div id="grid-card-${idx}" class="w-full h-full relative transform-style-3d transition-transform duration-500 rounded-2xl shadow-sm border border-wood-dark/10">
+                        <!-- Front -->
+                        <div class="absolute inset-0 w-full h-full backface-hidden rounded-2xl p-4 flex flex-col justify-between items-center bg-washi-card">
+                            <div class="w-full flex justify-between items-center">
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-wood-light text-wood-dark font-bold">${item.romaji}</span>
+                                <button onclick="event.stopPropagation(); speakJapanese('${item.kanji}')" class="text-gray-400 hover:text-indigo-jp p-1">
+                                    <i class="fa-solid fa-volume-high text-xs"></i>
+                                </button>
+                            </div>
+                            <div class="text-center my-auto">
+                                <div class="text-3xl mb-1">${item.emoji}</div>
+                                <div class="text-2xl font-black japanese-font text-indigo-jp">${item.kanji}</div>
+                                <div class="text-xs text-matcha font-bold mt-0.5">${item.kana}</div>
+                            </div>
+                            <div class="text-[10px] text-gray-300">點擊翻面</div>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl p-4 flex flex-col justify-between items-center bg-washi border border-wood-dark/20 text-center">
+                            <div class="text-xs font-bold text-sakura-dark japanese-font">${item.kana}</div>
+                            <div class="my-auto w-full">
+                                <div class="text-xl font-extrabold text-indigo-jp mb-1">${item.zh}</div>
+                                <div class="p-2 rounded-lg bg-white/90 border border-gray-100 text-left">
+                                    <div class="text-[9px] font-bold text-vermilion">例句</div>
+                                    <div class="text-xs font-bold text-indigo-jp japanese-font">${item.sentenceJa}</div>
+                                    <div class="text-[10px] text-gray-500">${item.sentenceZh}</div>
+                                </div>
+                            </div>
+                            <div class="text-[10px] text-gray-300">點擊翻面</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Quiz Mode
+        function prepareQuiz() {
+            quizDeck = [...currentItems];
+            shuffleArray(quizDeck);
+            quizIndex = 0;
+            quizMastered.clear();
+            quizNeedsReview.clear();
+
+            document.getElementById('quiz-stat-mastered').innerText = `0 / ${quizDeck.length}`;
+            document.getElementById('quiz-stat-review').innerText = `0 / ${quizDeck.length}`;
+
+            renderQuizCard();
+        }
+
+        function renderQuizCard() {
+            unflipCard('quiz-card');
+            if (quizIndex >= quizDeck.length) {
+                shuffleArray(quizDeck);
+                quizIndex = 0;
+            }
+            const data = quizDeck[quizIndex];
+            document.getElementById('quiz-front-emoji').innerText = data.emoji;
+            document.getElementById('quiz-front-kanji').innerText = data.kanji;
+            document.getElementById('quiz-front-romaji').innerText = data.romaji;
+
+            document.getElementById('quiz-back-kana').innerText = data.kana;
+            document.getElementById('quiz-back-zh').innerText = data.zh;
+            document.getElementById('quiz-back-sentence').innerText = data.sentenceJa;
+            document.getElementById('quiz-back-sentence-zh').innerText = data.sentenceZh;
+        }
+
+        function markQuiz(mastered) {
+            const currentItem = quizDeck[quizIndex];
+            if (mastered) {
+                quizMastered.add(currentItem.id);
+                quizNeedsReview.delete(currentItem.id);
+                playSuccessSound();
+            } else {
+                quizNeedsReview.add(currentItem.id);
+                quizMastered.delete(currentItem.id);
+            }
+
+            document.getElementById('quiz-stat-mastered').innerText = `${quizMastered.size} / ${quizDeck.length}`;
+            document.getElementById('quiz-stat-review').innerText = `${quizNeedsReview.size} / ${quizDeck.length}`;
+
+            quizIndex = (quizIndex + 1) % quizDeck.length;
+            renderQuizCard();
+        }
+
+        function resetQuiz() {
+            prepareQuiz();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Filter & Search
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            filteredItems = currentItems.filter(item => 
+                item.kanji.toLowerCase().includes(query) ||
+                item.kana.toLowerCase().includes(query) ||
+                item.romaji.toLowerCase().includes(query) ||
+                item.zh.toLowerCase().includes(query)
+            );
+
+            currentIndex = 0;
+            if (currentMode === 'single') renderSingleCard();
+            if (currentMode === 'grid') renderGridView();
+        }
+
+        // Mode Switching
+        function switchMode(mode) {
+            currentMode = mode;
+            const modes = ['single', 'grid', 'quiz'];
+
+            modes.forEach(m => {
+                const view = document.getElementById(`view-${m}`);
+                const btn = document.getElementById(`mode-${m}`);
+                if (m === mode) {
+                    view.classList.remove('hidden');
+                    if (m === 'single' || m === 'quiz') view.classList.add('flex');
+                    btn.classList.add('bg-white', 'text-indigo-jp', 'shadow-sm');
+                    btn.classList.remove('text-gray-600');
+                } else {
+                    view.classList.add('hidden');
+                    view.classList.remove('flex');
+                    btn.classList.remove('bg-white', 'text-indigo-jp', 'shadow-sm');
+                    btn.classList.add('text-gray-600');
+                }
+            });
+
+            if (mode === 'single') renderSingleCard();
+            if (mode === 'grid') renderGridView();
+            if (mode === 'quiz') prepareQuiz();
+        }
+
+        // Keyboard Shortcut Control
+        document.addEventListener('keydown', (e) => {
+            const singleView = document.getElementById('view-single');
+            if (!singleView.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight') nextCard();
+                if (e.key === 'ArrowLeft') prevCard();
+                if (e.key === ' ' || e.code === 'Space') {
+                    e.preventDefault();
+                    flipCard('single-card');
+                }
+            }
+        });
+
+        // App Init
+        window.onload = () => {
+            showHub();
+        };
+    </script>
+</body>
+</html>
+```
